@@ -7,258 +7,126 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#0f1117">
 <title>Security Navigator</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="data:application/json,{}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f1117;
-    --bg2: #181b24;
-    --bg3: #1e2230;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.13);
-    --text: #e8eaf0;
-    --text2: #8b90a0;
-    --text3: #555b70;
-    --accent: #4f8ef7;
-    --accent-bg: rgba(79,142,247,0.1);
-    --accent-border: rgba(79,142,247,0.25);
-    --green: #34c98a;
-    --green-bg: rgba(52,201,138,0.1);
-    --amber: #f0a742;
-    --amber-bg: rgba(240,167,66,0.1);
-    --purple: #a78bfa;
-    --purple-bg: rgba(167,139,250,0.1);
-    --teal: #2dd4bf;
-    --teal-bg: rgba(45,212,191,0.1);
-    --r: 10px;
-    --r-sm: 6px;
-    --font: 'DM Sans', sans-serif;
-    --mono: 'DM Mono', monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.6; }
-
-  /* Layout */
-  #app { display: flex; flex-direction: column; height: 100dvh; max-width: 480px; margin: 0 auto; }
-  #topbar { flex-shrink: 0; padding: 12px 16px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); }
-  #main { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
-  #bottomnav { flex-shrink: 0; border-top: 1px solid var(--border); display: flex; background: var(--bg); }
-
-  /* Topbar */
-  .tb-left { display: flex; align-items: center; gap: 10px; }
-  .tb-back { width: 30px; height: 30px; border-radius: 50%; background: var(--bg3); border: none; color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; }
-  .tb-title { font-size: 13px; font-weight: 500; color: var(--text); }
-  .tb-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
-  .lang-toggle { display: flex; border: 1px solid var(--border2); border-radius: var(--r-sm); overflow: hidden; }
-  .lang-btn { font-size: 11px; font-weight: 500; padding: 4px 9px; background: transparent; border: none; color: var(--text3); cursor: pointer; font-family: var(--mono); transition: all 0.15s; }
-  .lang-btn.active { background: var(--accent-bg); color: var(--accent); }
-
-  /* Bottomnav */
-  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 6px; background: none; border: none; cursor: pointer; transition: opacity 0.15s; }
-  .nav-item svg { width: 20px; height: 20px; stroke: var(--text3); fill: none; stroke-width: 1.5; transition: stroke 0.15s; }
-  .nav-item.active svg { stroke: var(--accent); }
-  .nav-label { font-size: 10px; color: var(--text3); }
-  .nav-item.active .nav-label { color: var(--accent); }
-
-  /* Screens */
-  .screen { display: none; }
-  .screen.active { display: block; }
-
-  /* Home screen */
-  .search-wrap { padding: 14px 16px 10px; }
-  .search-box { display: flex; align-items: center; gap: 8px; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); padding: 10px 14px; transition: border-color 0.15s; }
-  .search-box:focus-within { border-color: var(--accent-border); }
-  .search-box svg { width: 16px; height: 16px; stroke: var(--text3); fill: none; stroke-width: 2; flex-shrink: 0; }
-  .search-box input { background: none; border: none; outline: none; color: var(--text); font-family: var(--font); font-size: 13px; flex: 1; }
-  .search-box input::placeholder { color: var(--text3); }
-  .search-btn { background: var(--accent); border: none; border-radius: var(--r-sm); padding: 6px 12px; color: #fff; font-family: var(--font); font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
-  .search-btn:active { opacity: 0.8; }
-
-  .section-label { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 16px 6px; font-family: var(--mono); }
-
-  .topic-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
-  .topic-item:active { background: var(--bg2); }
-  .topic-name { font-size: 13px; font-weight: 500; color: var(--text); }
-  .topic-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
-  .topic-arrow { width: 14px; height: 14px; stroke: var(--text3); fill: none; stroke-width: 2; flex-shrink: 0; }
-
-  /* Framework badges */
-  .fw-badges { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 16px 6px; }
-  .fw-badge { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 20px; font-family: var(--mono); }
-  .fw-nis2 { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
-  .fw-iso { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52,201,138,0.2); }
-  .fw-dnb { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(240,167,66,0.2); }
-  .fw-cross { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
-  .fw-ot { background: var(--teal-bg); color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
-
-  /* Result screen */
-  .result-wrap { padding: 0 16px 16px; }
-  .summary-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); padding: 14px; margin-bottom: 12px; }
-  .summary-label { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-family: var(--mono); }
-  .summary-text { font-size: 13px; color: var(--text); line-height: 1.65; }
-
-  .detail-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; }
-  .detail-header { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background 0.1s; }
-  .detail-header:active { background: var(--bg3); }
-  .detail-header-left { display: flex; align-items: center; gap: 8px; }
-  .detail-title { font-size: 12px; font-weight: 500; color: var(--text2); }
-  .detail-chevron { width: 14px; height: 14px; stroke: var(--text3); fill: none; stroke-width: 2; transition: transform 0.2s; flex-shrink: 0; }
-  .detail-chevron.open { transform: rotate(90deg); }
-  .detail-body { padding: 0 14px; max-height: 0; overflow: hidden; transition: max-height 0.25s ease, padding 0.25s; }
-  .detail-body.open { max-height: 600px; padding: 0 14px 12px; }
-  .detail-section { margin-bottom: 10px; }
-  .detail-section-label { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; font-family: var(--mono); }
-  .detail-section-text { font-size: 12px; color: var(--text2); line-height: 1.6; }
-
-  /* Action bar */
-  .action-bar { display: flex; gap: 8px; margin-top: 12px; }
-  .action-btn { flex: 1; padding: 10px; border-radius: var(--r); border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); font-family: var(--font); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s; }
-  .action-btn:active { background: var(--bg3); }
-  .action-btn.primary { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
-  .action-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-  .action-btn.saved { background: var(--green-bg); border-color: rgba(52,201,138,0.25); color: var(--green); }
-
-  /* Follow-up chat */
-  .followup-wrap { margin-top: 12px; border: 1px solid var(--border2); border-radius: var(--r); overflow: hidden; }
-  .followup-history { max-height: 300px; overflow-y: auto; }
-  .chat-msg { padding: 10px 14px; border-bottom: 1px solid var(--border); }
-  .chat-msg.user { background: var(--bg3); }
-  .chat-msg.assistant { background: var(--bg2); }
-  .chat-role { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; font-family: var(--mono); }
-  .chat-text { font-size: 12px; color: var(--text); line-height: 1.6; }
-  .followup-input { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); background: var(--bg2); }
-  .followup-input input { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 12px; color: var(--text); }
-  .followup-input input::placeholder { color: var(--text3); }
-  .followup-send { background: var(--accent); border: none; border-radius: var(--r-sm); padding: 6px 10px; color: #fff; font-size: 11px; font-family: var(--font); font-weight: 500; cursor: pointer; white-space: nowrap; }
-  .followup-send:disabled { opacity: 0.4; cursor: default; }
-
-  /* Saved screen */
-  .saved-wrap { padding: 12px 16px; }
-  .saved-empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; }
-  .saved-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; }
-  .saved-item:active { border-color: var(--border2); }
-  .saved-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-  .saved-topic { font-size: 13px; font-weight: 500; color: var(--text); }
-  .saved-date { font-size: 10px; color: var(--text3); font-family: var(--mono); flex-shrink: 0; }
-  .saved-label { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--bg3); color: var(--text3); font-family: var(--mono); margin-right: 4px; }
-  .saved-delete { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 0 4px; }
-
-  /* Loading */
-  .loading { display: flex; align-items: center; gap: 8px; padding: 14px; color: var(--text3); font-size: 12px; }
-  .loading-dots { display: flex; gap: 4px; }
-  .loading-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text3); animation: pulse 1.2s ease-in-out infinite; }
-  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
-  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes pulse { 0%,80%,100% { opacity: 0.2; } 40% { opacity: 1; } }
-
-  /* API key overlay */
-  #apikey-overlay { display:none; position:absolute; inset:0; background:var(--bg); z-index:100; flex-direction:column; align-items:center; justify-content:center; padding:32px 24px; }
-  #apikey-overlay.visible { display:flex; }
-  .apikey-icon { width:48px; height:48px; border-radius:12px; background:var(--accent-bg); border:1px solid var(--accent-border); display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
-  .apikey-icon svg { width:24px; height:24px; stroke:var(--accent); fill:none; stroke-width:1.5; }
-  .apikey-title { font-size:16px; font-weight:500; color:var(--text); margin-bottom:8px; text-align:center; }
-  .apikey-sub { font-size:12px; color:var(--text3); text-align:center; line-height:1.6; margin-bottom:24px; }
-  .apikey-input-wrap { width:100%; margin-bottom:12px; }
-  .apikey-input-wrap input { width:100%; background:var(--bg2); border:1px solid var(--border2); border-radius:var(--r); padding:11px 14px; color:var(--text); font-family:var(--mono); font-size:12px; outline:none; }
-  .apikey-input-wrap input:focus { border-color:var(--accent-border); }
-  .apikey-input-wrap input::placeholder { color:var(--text3); }
-  .apikey-save-btn { width:100%; padding:12px; background:var(--accent); border:none; border-radius:var(--r); color:#fff; font-family:var(--font); font-size:13px; font-weight:500; cursor:pointer; }
-  .apikey-hint { font-size:11px; color:var(--text3); text-align:center; margin-top:16px; line-height:1.6; }
-  .apikey-hint a { color:var(--accent); text-decoration:none; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+:root{--bg:#0f1117;--bg2:#181b24;--bg3:#1e2230;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#e8eaf0;--text2:#8b90a0;--text3:#555b70;--accent:#4f8ef7;--accent-bg:rgba(79,142,247,0.1);--accent-border:rgba(79,142,247,0.25);--green:#34c98a;--green-bg:rgba(52,201,138,0.1);--amber:#f0a742;--amber-bg:rgba(240,167,66,0.1);--purple:#a78bfa;--purple-bg:rgba(167,139,250,0.1);--teal:#2dd4bf;--teal-bg:rgba(45,212,191,0.1);--pink:#f472b6;--pink-bg:rgba(244,114,182,0.1);--r:10px;--r-sm:6px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto}
+#topbar{flex-shrink:0;padding:12px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
+#main{flex:1;overflow-y:auto;overscroll-behavior:contain}
+#bottomnav{flex-shrink:0;border-top:1px solid var(--border);display:flex;background:var(--bg)}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-back{width:30px;height:30px;border-radius:50%;background:var(--bg3);border:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px}
+.tb-title{font-size:13px;font-weight:500;color:var(--text)}
+.tb-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.lang-toggle{display:flex;border:1px solid var(--border2);border-radius:var(--r-sm);overflow:hidden}
+.lang-btn{font-size:11px;font-weight:500;padding:4px 9px;background:transparent;border:none;color:var(--text3);cursor:pointer;font-family:var(--mono);transition:all 0.15s}
+.lang-btn.active{background:var(--accent-bg);color:var(--accent)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 6px;background:none;border:none;cursor:pointer}
+.nav-item svg{width:20px;height:20px;stroke:var(--text3);fill:none;stroke-width:1.5;transition:stroke 0.15s}
+.nav-item.active svg{stroke:var(--accent)}
+.nav-label{font-size:10px;color:var(--text3)}
+.nav-item.active .nav-label{color:var(--accent)}
+.screen{display:none}.screen.active{display:block}
+.search-wrap{padding:14px 16px 10px}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;transition:border-color 0.15s}
+.search-box:focus-within{border-color:var(--accent-border)}
+.search-box svg{width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:2;flex-shrink:0}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:13px;flex:1}
+.search-box input::placeholder{color:var(--text3)}
+.section-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding:10px 16px 6px;font-family:var(--mono)}
+.topic-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s}
+.topic-item:active{background:var(--bg2)}
+.topic-name{font-size:13px;font-weight:500;color:var(--text)}
+.topic-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.fw-badges{display:flex;flex-wrap:wrap;gap:5px;padding:10px 16px 6px}
+.fw-badge{font-size:10px;font-weight:500;padding:3px 8px;border-radius:20px;font-family:var(--mono)}
+.fw-nis2{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border)}
+.fw-iso{background:var(--green-bg);color:var(--green);border:1px solid rgba(52,201,138,0.2)}
+.fw-dnb{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(240,167,66,0.2)}
+.fw-cross{background:var(--purple-bg);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+.fw-ot{background:var(--teal-bg);color:var(--teal);border:1px solid rgba(45,212,191,0.2)}
+.fw-cism{background:var(--pink-bg);color:var(--pink);border:1px solid rgba(244,114,182,0.2)}
+.result-wrap{padding:0 16px 16px}
+.summary-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.summary-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;font-family:var(--mono)}
+.summary-text{font-size:13px;color:var(--text);line-height:1.65}
+.detail-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+.detail-header{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background 0.1s}
+.detail-header:active{background:var(--bg3)}
+.detail-header-left{display:flex;align-items:center;gap:8px}
+.detail-title{font-size:12px;font-weight:500;color:var(--text2)}
+.detail-chevron{width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;transition:transform 0.2s;flex-shrink:0}
+.detail-chevron.open{transform:rotate(90deg)}
+.detail-body{padding:0 14px;max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s}
+.detail-body.open{max-height:2000px;padding:0 14px 12px}
+.detail-section{margin-bottom:10px}
+.detail-section-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;font-family:var(--mono)}
+.detail-section-text{font-size:12px;color:var(--text2);line-height:1.6}
+.action-bar{display:flex;gap:8px;margin-top:12px}
+.action-btn{flex:1;padding:10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-family:var(--font);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s}
+.action-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.action-btn.primary{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent)}
+.action-btn.saved{background:var(--green-bg);border-color:rgba(52,201,138,0.25);color:var(--green)}
+.saved-wrap{padding:12px 16px}
+.saved-empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;line-height:1.7}
+.saved-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.saved-item:active{border-color:var(--border2)}
+.saved-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.saved-topic{font-size:13px;font-weight:500;color:var(--text)}
+.saved-date{font-size:10px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
+.saved-delete{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px;line-height:1}
+.no-results{padding:24px 16px;text-align:center;color:var(--text3);font-size:13px}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 </style>
 </head>
 <body>
 <div id="app">
-
-  <!-- API key overlay -->
-  <div id="apikey-overlay">
-    <div class="apikey-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-    <div class="apikey-title" id="ak-title">API key instellen</div>
-    <div class="apikey-sub" id="ak-sub">Voer je Anthropic API key in. Deze wordt alleen lokaal opgeslagen op dit apparaat.</div>
-    <div class="apikey-input-wrap">
-      <input type="password" id="apikeyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
-    </div>
-    <button class="apikey-save-btn" id="ak-btn" onclick="submitApiKey()">Opslaan en starten</button>
-    <div class="apikey-hint" id="ak-hint">Key aanvragen via <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>Je key wordt nooit gedeeld of verstuurd naar derden.</div>
-  </div>
-
-  <!-- Topbar -->
   <div id="topbar">
     <div class="tb-left">
       <button class="tb-back" id="backBtn" style="display:none" onclick="goBack()">&#8592;</button>
-      <div>
-        <div class="tb-title" id="tbTitle">Security navigator</div>
-        <div class="tb-sub" id="tbSub">Energiesector NL</div>
-      </div>
+      <div><div class="tb-title" id="tbTitle">Security navigator</div><div class="tb-sub" id="tbSub">Energiesector NL</div></div>
     </div>
     <div class="lang-toggle">
       <button class="lang-btn active" id="btnNL" onclick="setLang('nl')">NL</button>
       <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
     </div>
   </div>
-
-  <!-- Main content -->
   <div id="main">
-
-    <!-- Screen: Home -->
     <div class="screen active" id="screen-home">
-      <div class="search-wrap">
-        <div class="search-box">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="searchInput" placeholder="" autocomplete="off" autocorrect="off" spellcheck="false">
-          <button class="search-btn" onclick="doSearch()">→</button>
-        </div>
-      </div>
+      <div class="search-wrap"><div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="text" id="searchInput" placeholder="" autocomplete="off" autocorrect="off" spellcheck="false"></div></div>
       <div class="section-label" id="topicsLabel">Thema's</div>
       <div id="topicsList"></div>
     </div>
-
-    <!-- Screen: Result -->
     <div class="screen" id="screen-result">
       <div class="fw-badges" id="fwBadges"></div>
       <div class="result-wrap">
-        <div class="summary-card">
-          <div class="summary-label" id="summaryLabel">Samenvatting</div>
-          <div class="summary-text" id="summaryText">
-            <div class="loading"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></div>
-          </div>
-        </div>
+        <div class="summary-card"><div class="summary-label" id="summaryLabel">Samenvatting</div><div class="summary-text" id="summaryText"></div></div>
         <div id="detailCards"></div>
         <div class="action-bar">
-          <button class="action-btn" onclick="toggleFollowup()" id="followupBtn">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span id="followupBtnLabel">Doorvragen</span>
-          </button>
-          <button class="action-btn primary" onclick="saveResult()" id="saveBtn">
-            <svg viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            <span id="saveBtnLabel">Bewaren</span>
-          </button>
-        </div>
-        <div class="followup-wrap" id="followupWrap" style="display:none">
-          <div class="followup-history" id="followupHistory"></div>
-          <div class="followup-input">
-            <input type="text" id="followupInput" placeholder="" autocomplete="off">
-            <button class="followup-send" id="followupSend" onclick="sendFollowup()">→</button>
-          </div>
+          <button class="action-btn primary" onclick="saveResult()" id="saveBtn"><svg viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span id="saveBtnLabel">Bewaren</span></button>
         </div>
       </div>
     </div>
-
-    <!-- Screen: Saved -->
-    <div class="screen" id="screen-saved">
-      <div class="saved-wrap" id="savedList"></div>
+    <div class="screen" id="screen-saved"><div class="saved-wrap" id="savedList"></div></div>
+    <div class="screen" id="screen-settings">
+      <div style="padding:20px 16px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+          <div style="padding:14px"><div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px" id="set-title">Over deze app</div><div style="font-size:12px;color:var(--text3);line-height:1.7" id="set-desc">Offline kennisbank voor security en compliance in de Nederlandse energiesector. Gebaseerd op NIS2, ISO 27001, IEC 62443, DNB Good Practice, DORA, NIST CSF en CISM. Geen internetverbinding vereist voor de kennisbank.</div></div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="set-version">Versie 2.0 — offline kennisbank · 9 thema's</div></div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+          <button onclick="clearAllSessions()" style="width:100%;padding:12px 14px;background:none;border:none;color:#e05555;font-family:var(--font);font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            <span id="set-clear-label">Alle opgeslagen sessies verwijderen</span>
+          </button>
+        </div>
+      </div>
     </div>
-
   </div>
-
-  <!-- Bottom nav -->
   <div id="bottomnav">
     <button class="nav-item active" id="nav-home" onclick="showScreen('home')">
       <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -268,588 +136,13 @@
       <svg viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       <span class="nav-label" id="nav-saved-label">Opgeslagen</span>
     </button>
+    <button class="nav-item" id="nav-settings" onclick="showScreen('settings')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="nav-label" id="nav-settings-label">Info</span>
+    </button>
   </div>
-
 </div>
-
-<script>
-// ─── State ───────────────────────────────────────────────────────────────────
-let lang = 'nl';
-let currentTopic = '';
-let currentFrameworks = [];
-let currentResult = null;
-let followupHistory = [];
-let isSaved = false;
-let prevScreen = 'home';
-
-// ─── i18n ────────────────────────────────────────────────────────────────────
-const T = {
-  nl: {
-    appSub: 'Energiesector NL',
-    topicsLabel: 'Thema\'s',
-    searchPlaceholder: 'Zoek een onderwerp...',
-    summaryLabel: 'Samenvatting',
-    followupBtnLabel: 'Doorvragen',
-    saveBtnLabel: 'Bewaren',
-    savedBtnLabel: 'Bewaard',
-    followupPlaceholder: 'Stel een vervolgvraag...',
-    navNavigator: 'Navigator',
-    navSaved: 'Opgeslagen',
-    savedEmpty: 'Nog niets bewaard.\nRaadpleeg een onderwerp en sla het op.',
-    loading: 'Aan het zoeken...',
-  },
-  en: {
-    appSub: 'Energy sector NL',
-    topicsLabel: 'Topics',
-    searchPlaceholder: 'Search a topic...',
-    summaryLabel: 'Summary',
-    followupBtnLabel: 'Ask more',
-    saveBtnLabel: 'Save',
-    savedBtnLabel: 'Saved',
-    followupPlaceholder: 'Ask a follow-up question...',
-    navNavigator: 'Navigator',
-    navSaved: 'Saved',
-    savedEmpty: 'Nothing saved yet.\nLook up a topic and save it.',
-    loading: 'Searching...',
-  }
-};
-
-function t(key) { return T[lang][key] || key; }
-
-// ─── Topics ──────────────────────────────────────────────────────────────────
-const TOPICS = {
-  nl: [
-    { name: 'Leveranciersrisico', meta: 'NIS2 · ISO 27036 · DORA', query: 'leverancier keten supply chain risico NIS2' },
-    { name: 'Incident response & meldplicht', meta: 'NIS2 · ISO 27035', query: 'incident response meldplicht termijnen NIS2' },
-    { name: 'Toegangsbeheer', meta: 'ISO 27001 · NIS2', query: 'toegangsbeheer identity access management ISO27001' },
-    { name: 'OT / ICS-security', meta: 'IEC 62443 · NIS2 · NIST', query: 'OT ICS SCADA security energiesector IEC62443' },
-    { name: 'Security governance', meta: 'DNB · NIST CSF · ISO 27001', query: 'CISO governance bestuur security organisatie DNB' },
-    { name: 'Kwetsbaarheidsbeheer', meta: 'ISO 27001 · NIS2', query: 'kwetsbaarheidsbeheer patch management vulnerability ISO27001' },
-    { name: 'Business continuity', meta: 'ISO 22301 · NIS2', query: 'business continuity disaster recovery veerkracht NIS2' },
-  ],
-  en: [
-    { name: 'Supplier risk', meta: 'NIS2 · ISO 27036 · DORA', query: 'supplier chain supply chain risk NIS2' },
-    { name: 'Incident response & reporting', meta: 'NIS2 · ISO 27035', query: 'incident response reporting obligation deadlines NIS2' },
-    { name: 'Access management', meta: 'ISO 27001 · NIS2', query: 'access management identity ISO27001 NIS2' },
-    { name: 'OT / ICS security', meta: 'IEC 62443 · NIS2 · NIST', query: 'OT ICS SCADA security energy sector IEC62443' },
-    { name: 'Security governance', meta: 'DNB · NIST CSF · ISO 27001', query: 'CISO governance board security organization DNB' },
-    { name: 'Vulnerability management', meta: 'ISO 27001 · NIS2', query: 'vulnerability management patch management ISO27001 NIS2' },
-    { name: 'Business continuity', meta: 'ISO 22301 · NIS2', query: 'business continuity disaster recovery resilience NIS2' },
-  ]
-};
-
-// ─── Framework selectie logica ───────────────────────────────────────────────
-const FRAMEWORK_RULES = [
-  { id: 'NIS2', always: true, keywords: ['nis2','meldplicht','incident','leverancier','keten','cyber','risico','security','supplier','chain','reporting','network','essential','risk','compliance'] },
-  { id: 'ISO27001', keywords: ['iso','27001','isms','toegang','access','beleid','policy','governance','audit','control','beheer','management','ciso','directie','board','pentest','vulnerability','kwetsbaarheid'] },
-  { id: 'ISO27035', keywords: ['incident','response','meldplicht','melding','escalatie','reporting','breach','detectie','detection','herstel','recovery'] },
-  { id: 'ISO27036', keywords: ['leverancier','supplier','keten','chain','third party','derde partij','uitbesteding','outsourcing','contract','vendor'] },
-  { id: 'IEC62443', keywords: ['ot','ics','scada','operationele technologie','operational technology','industrieel','industrial','plc','dcs','grid','substation'] },
-  { id: 'NIST_CSF', keywords: ['maturity','volwassenheid','governance','identify','protect','detect','respond','recover','ciso','roadmap','prioritering','ot','ics','security program'] },
-  { id: 'DNB', keywords: ['governance','bestuur','board','directie','ciso','toezicht','supervision','rapportage','reporting','organisatie','organization','meldplicht'] },
-  { id: 'DORA', keywords: ['leverancier','supplier','third party','derde partij','keten','chain','uitbesteding','outsourcing','ict-risico','ict risk','vendor','contract'] },
-];
-
-const OUT_OF_SCOPE = ['avg','gdpr','privacywet','privacy law','kwantum','quantum','post-quantum','blockchain','cryptocurrency'];
-
-function selectFrameworks(query) {
-  if (!query || !query.trim()) return [];
-  const q = query.toLowerCase();
-  const outOfScope = OUT_OF_SCOPE.some(kw => q.includes(kw)) && !['security','cyber','nis2','iso'].some(kw => q.includes(kw));
-  const selected = [];
-  for (const rule of FRAMEWORK_RULES) {
-    if (rule.always && !outOfScope) { selected.push(rule.id); continue; }
-    if (rule.keywords && rule.keywords.some(kw => q.includes(kw))) selected.push(rule.id);
-  }
-  return [...new Set(selected)];
-}
-
-// ─── Badge rendering ─────────────────────────────────────────────────────────
-const FW_META = {
-  NIS2:     { label: 'NIS2',        cls: 'fw-nis2' },
-  ISO27001: { label: 'ISO 27001',   cls: 'fw-iso' },
-  ISO27035: { label: 'ISO 27035',   cls: 'fw-iso' },
-  ISO27036: { label: 'ISO 27036',   cls: 'fw-iso' },
-  IEC62443: { label: 'IEC 62443',   cls: 'fw-ot' },
-  NIST_CSF: { label: 'NIST CSF',    cls: 'fw-cross' },
-  DNB:      { label: 'DNB',         cls: 'fw-dnb' },
-  DORA:     { label: 'DORA',        cls: 'fw-cross' },
-};
-
-function renderBadges(frameworks) {
-  return frameworks.map(f => {
-    const m = FW_META[f] || { label: f, cls: 'fw-iso' };
-    return `<span class="fw-badge ${m.cls}">${m.label}</span>`;
-  }).join('');
-}
-
-// ─── System prompt ───────────────────────────────────────────────────────────
-const FW_DESC = {
-  nl: {
-    NIS2: 'NIS2 (EU richtlijn 2022/2555): verplichte cybersecuritymaatregelen voor essentiële en belangrijke entiteiten in de energiesector',
-    ISO27001: 'ISO/IEC 27001:2022: internationale standaard voor informatiebeveiliging en risicobeheer',
-    ISO27035: 'ISO/IEC 27035: standaard voor incident response en meldprocessen',
-    ISO27036: 'ISO/IEC 27036: standaard voor informatiebeveiliging in leveranciersrelaties',
-    IEC62443: 'IEC 62443: industriestandaard voor cybersecurity in operationele technologie (OT) en ICS',
-    NIST_CSF: 'NIST Cybersecurity Framework 2.0: referentiekader voor securityvolwassenheid',
-    DNB: 'DNB Good Practice Informatiebeveiliging (COBIT-gebaseerd): governance- en toezichtverwachtingen voor kritieke sectoren',
-    DORA: 'DORA (EU 2022/2554): digital operational resilience — cross-sectorale best practice voor leveranciersbeheer',
-  },
-  en: {
-    NIS2: 'NIS2 (EU Directive 2022/2555): mandatory cybersecurity measures for essential and important entities in the energy sector',
-    ISO27001: 'ISO/IEC 27001:2022: international standard for information security management',
-    ISO27035: 'ISO/IEC 27035: standard for incident response and notification processes',
-    ISO27036: 'ISO/IEC 27036: standard for information security in supplier relationships',
-    IEC62443: 'IEC 62443: industry standard for cybersecurity in OT and industrial control systems',
-    NIST_CSF: 'NIST Cybersecurity Framework 2.0: reference framework for security maturity',
-    DNB: 'DNB Good Practice Information Security (COBIT-based): governance expectations for critical sectors in the Netherlands',
-    DORA: 'DORA (EU 2022/2554): digital operational resilience — cross-sector best practice for supplier risk management',
-  }
-};
-
-function buildSystemPrompt(frameworks, language) {
-  const descs = frameworks.map(f => FW_DESC[language]?.[f]).filter(Boolean).map(d => `- ${d}`).join('\n');
-  if (language === 'nl') return `Je bent een security-adviseur gespecialiseerd in de Nederlandse energiesector. Je helpt een Head of Engineering om goed beslagen ten ijs te komen bij gesprekken over cybersecurity en compliance.
-
-ACTIEVE FRAMEWORKS:
-${descs}
-
-INSTRUCTIES:
-1. Begin ALTIJD met een SAMENVATTING van 3-5 zinnen zonder framework-jargon.
-2. Geef daarna per framework een detail-blok. Elk blok bevat: (a) wat verplicht is, (b) hoe andere sectoren dit aanpakken (cross-sectorale vergelijking), (c) praktische aandachtspunten.
-3. Benoem ALTIJD cross-sectorale vergelijkingen (finance/DORA, zorg, telecom, luchtvaart) waar relevant.
-4. Maak onderscheid tussen VERPLICHT (NIS2-minimum) en BEST PRACTICE.
-5. GEEN hallucinaties: noem alleen bestaande artikelen en controls. Bij twijfel: "vereist verificatie".
-6. Geef je antwoord als een geldig JSON-object. Begin direct met { en eindig met }. Geen tekst ervoor of erna. Geen markdown, geen backticks, geen uitleg buiten de JSON. Gebruik dit schema exact:
-{"summary":"...","details":[{"framework":"NIS2","required":"...","crossSector":"...","tips":"..."}]}`;
-
-  return `You are a security advisor specializing in the Dutch energy sector. You help a Head of Engineering prepare thoroughly for conversations about cybersecurity and compliance.
-
-ACTIVE FRAMEWORKS:
-${descs}
-
-INSTRUCTIONS:
-1. Always start with a SUMMARY of 3-5 sentences without framework jargon.
-2. Then provide per framework a detail block with: (a) what is required, (b) how other sectors approach this (cross-sector comparison), (c) practical points.
-3. ALWAYS include cross-sector comparisons (finance/DORA, healthcare, telecom, aviation) where relevant.
-4. Distinguish between REQUIRED (NIS2 minimum) and BEST PRACTICE.
-5. NO hallucinations: only reference existing articles and controls. When in doubt: "requires verification".
-6. Return your answer as a valid JSON object. Start directly with { and end with }. No text before or after. No markdown, no backticks, no explanation outside the JSON. Use this exact schema:
-{"summary":"...","details":[{"framework":"NIS2","required":"...","crossSector":"...","tips":"..."}]}`;
-}
-
-// ─── JSON extractor — handles all markdown fence variants ────────────────────
-function extractJSON(raw) {
-  if (!raw) throw new Error('empty response');
-
-  // 1. Try direct parse first (model sometimes returns clean JSON)
-  try { return JSON.parse(raw.trim()); } catch {}
-
-  // 2. Extract JSON object from anywhere in the string
-  // Find the first { and last } to extract the JSON block
-  const first = raw.indexOf('{');
-  const last = raw.lastIndexOf('}');
-  if (first !== -1 && last !== -1 && last > first) {
-    try { return JSON.parse(raw.slice(first, last + 1)); } catch {}
-  }
-
-  // 3. Strip all markdown code fence variants and retry
-  const stripped = raw
-    .replace(/```+json\s*/gi, '')
-    .replace(/```+\s*/g, '')
-    .trim();
-  try { return JSON.parse(stripped); } catch {}
-
-  // 4. Give up — return summary-only fallback
-  throw new Error('unparseable');
-}
-
-// ─── Claude API call ─────────────────────────────────────────────────────────
-function getApiKey() { return localStorage.getItem('bpn_apikey'); }
-function saveApiKey(key) { localStorage.setItem('bpn_apikey', key.trim()); }
-
-async function callClaude(messages, systemPrompt) {
-  const apiKey = getApiKey();
-  if (!apiKey) { showApiKeyScreen(); throw new Error('no api key'); }
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages,
-    })
-  });
-  if (response.status === 401) { localStorage.removeItem('bpn_apikey'); showApiKeyScreen(); throw new Error('invalid key'); }
-  const data = await response.json();
-  return data.content?.map(b => b.text || '').join('') || '';
-}
-
-// ─── Search / navigate ───────────────────────────────────────────────────────
-async function doSearch() {
-  const query = document.getElementById('searchInput').value.trim();
-  if (!query) return;
-  await loadResult(query, query);
-}
-
-async function loadResult(query, displayTitle) {
-  currentTopic = displayTitle;
-  currentFrameworks = selectFrameworks(query);
-  followupHistory = [];
-  isSaved = false;
-
-  showScreen('result');
-  document.getElementById('tbTitle').textContent = displayTitle.length > 28 ? displayTitle.slice(0,26)+'…' : displayTitle;
-  document.getElementById('fwBadges').innerHTML = renderBadges(currentFrameworks);
-  document.getElementById('summaryLabel').textContent = t('summaryLabel');
-  document.getElementById('summaryText').innerHTML = `<div class="loading"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div><span>${t('loading')}</span></div>`;
-  document.getElementById('detailCards').innerHTML = '';
-  document.getElementById('followupWrap').style.display = 'none';
-  document.getElementById('followupHistory').innerHTML = '';
-  document.getElementById('saveBtn').className = 'action-btn primary';
-  document.getElementById('saveBtnLabel').textContent = t('saveBtnLabel');
-
-  const systemPrompt = buildSystemPrompt(currentFrameworks, lang);
-  const raw = await callClaude([{ role: 'user', content: query }], systemPrompt);
-
-  let parsed;
-  try {
-    parsed = extractJSON(raw);
-  } catch {
-    parsed = { summary: raw, details: [] };
-  }
-
-  currentResult = parsed;
-  renderResult(parsed);
-}
-
-function renderResult(data) {
-  document.getElementById('summaryText').textContent = data.summary || '';
-  const container = document.getElementById('detailCards');
-  container.innerHTML = '';
-  (data.details || []).forEach((d, i) => {
-    const meta = FW_META[d.framework] || { label: d.framework, cls: 'fw-iso' };
-    const labelReq = lang === 'nl' ? 'Wat is verplicht' : 'What is required';
-    const labelCross = lang === 'nl' ? 'Hoe andere sectoren dit doen' : 'How other sectors approach this';
-    const labelTips = lang === 'nl' ? 'Aandachtspunten' : 'Points to watch';
-    container.innerHTML += `
-      <div class="detail-card">
-        <div class="detail-header" onclick="toggleDetail(${i})">
-          <div class="detail-header-left">
-            <span class="fw-badge ${meta.cls}">${meta.label}</span>
-            <span class="detail-title">${d.framework}</span>
-          </div>
-          <svg class="detail-chevron" id="chev-${i}" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="detail-body" id="detail-${i}">
-          ${d.required ? `<div class="detail-section"><div class="detail-section-label">${labelReq}</div><div class="detail-section-text">${d.required}</div></div>` : ''}
-          ${d.crossSector ? `<div class="detail-section"><div class="detail-section-label">${labelCross}</div><div class="detail-section-text">${d.crossSector}</div></div>` : ''}
-          ${d.tips ? `<div class="detail-section"><div class="detail-section-label">${labelTips}</div><div class="detail-section-text">${d.tips}</div></div>` : ''}
-        </div>
-      </div>`;
-  });
-}
-
-function toggleDetail(i) {
-  const body = document.getElementById(`detail-${i}`);
-  const chev = document.getElementById(`chev-${i}`);
-  body.classList.toggle('open');
-  chev.classList.toggle('open');
-}
-
-// ─── Follow-up ───────────────────────────────────────────────────────────────
-function toggleFollowup() {
-  const wrap = document.getElementById('followupWrap');
-  const visible = wrap.style.display !== 'none';
-  wrap.style.display = visible ? 'none' : 'block';
-  if (!visible) document.getElementById('followupInput').focus();
-}
-
-async function sendFollowup() {
-  const input = document.getElementById('followupInput');
-  const question = input.value.trim();
-  if (!question) return;
-  input.value = '';
-  document.getElementById('followupSend').disabled = true;
-
-  const historyEl = document.getElementById('followupHistory');
-  historyEl.innerHTML += `<div class="chat-msg user"><div class="chat-role">${lang === 'nl' ? 'Jij' : 'You'}</div><div class="chat-text">${question}</div></div>`;
-  historyEl.innerHTML += `<div class="chat-msg assistant" id="fw-loading"><div class="loading"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></div></div>`;
-  historyEl.scrollTop = historyEl.scrollHeight;
-
-  followupHistory.push({ role: 'user', content: question });
-
-  const sysPrompt = lang === 'nl'
-    ? `Je bent een security-adviseur voor de Nederlandse energiesector. Context: het onderwerp is "${currentTopic}", actieve frameworks: ${currentFrameworks.join(', ')}. Beantwoord de vervolgvraag bondig en in het Nederlands.`
-    : `You are a security advisor for the Dutch energy sector. Context: topic is "${currentTopic}", active frameworks: ${currentFrameworks.join(', ')}. Answer the follow-up question concisely in English.`;
-
-  const answer = await callClaude(followupHistory, sysPrompt);
-  followupHistory.push({ role: 'assistant', content: answer });
-
-  document.getElementById('fw-loading').outerHTML = `<div class="chat-msg assistant"><div class="chat-role">${lang === 'nl' ? 'Adviseur' : 'Advisor'}</div><div class="chat-text">${answer}</div></div>`;
-  historyEl.scrollTop = historyEl.scrollHeight;
-  document.getElementById('followupSend').disabled = false;
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.activeElement.id === 'followupInput') sendFollowup();
-  if (e.key === 'Enter' && document.activeElement.id === 'searchInput') doSearch();
-});
-
-// ─── Save ────────────────────────────────────────────────────────────────────
-function saveResult() {
-  if (isSaved) return;
-  const sessions = JSON.parse(localStorage.getItem('bpn_sessions') || '[]');
-  sessions.unshift({
-    id: Date.now().toString(),
-    savedAt: new Date().toISOString(),
-    topic: currentTopic,
-    frameworks: currentFrameworks,
-    lang,
-    result: currentResult,
-    history: followupHistory,
-  });
-  localStorage.setItem('bpn_sessions', JSON.stringify(sessions));
-  isSaved = true;
-  document.getElementById('saveBtn').className = 'action-btn saved';
-  document.getElementById('saveBtnLabel').textContent = t('savedBtnLabel');
-}
-
-function getSessions() {
-  return JSON.parse(localStorage.getItem('bpn_sessions') || '[]');
-}
-
-function deleteSession(id) {
-  const sessions = getSessions().filter(s => s.id !== id);
-  localStorage.setItem('bpn_sessions', JSON.stringify(sessions));
-  renderSaved();
-}
-
-function renderSaved() {
-  const sessions = getSessions();
-  const el = document.getElementById('savedList');
-  if (!sessions.length) {
-    el.innerHTML = `<div class="saved-empty">${t('savedEmpty').replace('\n', '<br>')}</div>`;
-    return;
-  }
-  el.innerHTML = sessions.map(s => {
-    const date = new Date(s.savedAt).toLocaleDateString(lang === 'nl' ? 'nl-NL' : 'en-GB', { day: 'numeric', month: 'short' });
-    const fwLabels = s.frameworks.slice(0,3).map(f => FW_META[f]?.label || f).join(' · ');
-    return `<div class="saved-item" onclick="loadSavedSession('${s.id}')">
-      <div class="saved-item-top">
-        <div class="saved-topic">${s.topic}</div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span class="saved-date">${date}</span>
-          <button class="saved-delete" onclick="event.stopPropagation();deleteSession('${s.id}')" aria-label="Verwijder">×</button>
-        </div>
-      </div>
-      <div>${s.frameworks.map(f => `<span class="fw-badge ${FW_META[f]?.cls||'fw-iso'}" style="font-size:9px">${FW_META[f]?.label||f}</span>`).join(' ')}</div>
-    </div>`;
-  }).join('');
-}
-
-function loadSavedSession(id) {
-  const session = getSessions().find(s => s.id === id);
-  if (!session) return;
-  currentTopic = session.topic;
-  currentFrameworks = session.frameworks;
-  currentResult = session.result;
-  followupHistory = session.history || [];
-  isSaved = true;
-
-  showScreen('result');
-  document.getElementById('tbTitle').textContent = session.topic.length > 28 ? session.topic.slice(0,26)+'…' : session.topic;
-  document.getElementById('fwBadges').innerHTML = renderBadges(currentFrameworks);
-  document.getElementById('summaryLabel').textContent = t('summaryLabel');
-  document.getElementById('saveBtn').className = 'action-btn saved';
-  document.getElementById('saveBtnLabel').textContent = t('savedBtnLabel');
-  document.getElementById('followupWrap').style.display = 'none';
-
-  renderResult(currentResult || { summary: '', details: [] });
-
-  if (followupHistory.length) {
-    const histEl = document.getElementById('followupHistory');
-    histEl.innerHTML = '';
-    for (let i = 0; i < followupHistory.length; i++) {
-      const msg = followupHistory[i];
-      const role = msg.role === 'user' ? (lang === 'nl' ? 'Jij' : 'You') : (lang === 'nl' ? 'Adviseur' : 'Advisor');
-      histEl.innerHTML += `<div class="chat-msg ${msg.role}"><div class="chat-role">${role}</div><div class="chat-text">${msg.content}</div></div>`;
-    }
-    document.getElementById('followupWrap').style.display = 'block';
-  }
-}
-
-// ─── Language ────────────────────────────────────────────────────────────────
-function setLang(l) {
-  lang = l;
-  document.getElementById('btnNL').classList.toggle('active', l === 'nl');
-  document.getElementById('btnEN').classList.toggle('active', l === 'en');
-  document.getElementById('tbSub').textContent = t('appSub');
-  document.getElementById('topicsLabel').textContent = t('topicsLabel');
-  document.getElementById('searchInput').placeholder = t('searchPlaceholder');
-  document.getElementById('summaryLabel').textContent = t('summaryLabel');
-  document.getElementById('followupBtnLabel').textContent = t('followupBtnLabel');
-  document.getElementById('followupInput').placeholder = t('followupPlaceholder');
-  document.getElementById('nav-home-label').textContent = t('navNavigator');
-  document.getElementById('nav-saved-label').textContent = t('navSaved');
-  if (!isSaved) document.getElementById('saveBtnLabel').textContent = t('saveBtnLabel');
-  renderTopics();
-  if (document.getElementById('screen-saved').classList.contains('active')) renderSaved();
-  updateApiKeyLabels();
-  // Re-fetch result in new language if on result screen
-  if (document.getElementById('screen-result').classList.contains('active') && currentTopic && currentResult) {
-    const query = currentTopic;
-    currentResult = null;
-    document.getElementById('summaryText').innerHTML = `<div class="loading"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div><span>${t('loading')}</span></div>`;
-    document.getElementById('detailCards').innerHTML = '';
-    const systemPrompt = buildSystemPrompt(currentFrameworks, lang);
-    callClaude([{ role: 'user', content: query }], systemPrompt).then(raw => {
-      let parsed;
-      try { parsed = extractJSON(raw); }
-      catch { parsed = { summary: raw, details: [] }; }
-      currentResult = parsed;
-      renderResult(parsed);
-    });
-  }
-}
-
-// ─── Screen routing ──────────────────────────────────────────────────────────
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById(`screen-${name}`).classList.add('active');
-  const navEl = document.getElementById(`nav-${name}`);
-  if (navEl) navEl.classList.add('active');
-
-  const onResult = name === 'result';
-  document.getElementById('backBtn').style.display = onResult ? 'flex' : 'none';
-
-  if (name === 'saved') renderSaved();
-  if (name === 'home') {
-    document.getElementById('tbTitle').textContent = 'Security navigator';
-    document.getElementById('tbSub').textContent = t('appSub');
-  }
-}
-
-function goBack() {
-  showScreen('home');
-}
-
-// ─── Init ────────────────────────────────────────────────────────────────────
-function renderTopics() {
-  const list = document.getElementById('topicsList');
-  list.innerHTML = TOPICS[lang].map(topic => `
-    <div class="topic-item" onclick="loadResult('${topic.query}', '${topic.name}')">
-      <div>
-        <div class="topic-name">${topic.name}</div>
-        <div class="topic-meta">${topic.meta}</div>
-      </div>
-      <svg class="topic-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>`).join('');
-}
-
-// ─── API key screen ──────────────────────────────────────────────────────────
-function showApiKeyScreen() {
-  const overlay = document.getElementById('apikey-overlay');
-  overlay.classList.add('visible');
-  setTimeout(() => document.getElementById('apikeyInput').focus(), 100);
-}
-
-function hideApiKeyScreen() {
-  document.getElementById('apikey-overlay').classList.remove('visible');
-}
-
-function submitApiKey() {
-  const val = document.getElementById('apikeyInput').value.trim();
-  if (!val.startsWith('sk-ant-')) {
-    document.getElementById('apikeyInput').style.borderColor = 'rgba(224,74,74,0.5)';
-    return;
-  }
-  saveApiKey(val);
-  document.getElementById('apikeyInput').value = '';
-  hideApiKeyScreen();
-}
-
-function updateApiKeyLabels() {
-  if (lang === 'en') {
-    document.getElementById('ak-title').textContent = 'Set API key';
-    document.getElementById('ak-sub').textContent = 'Enter your Anthropic API key. It is stored locally on this device only.';
-    document.getElementById('ak-btn').textContent = 'Save and start';
-    document.getElementById('ak-hint').innerHTML = 'Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>Your key is never shared or sent to third parties.';
-  } else {
-    document.getElementById('ak-title').textContent = 'API key instellen';
-    document.getElementById('ak-sub').textContent = 'Voer je Anthropic API key in. Deze wordt alleen lokaal opgeslagen op dit apparaat.';
-    document.getElementById('ak-btn').textContent = 'Opslaan en starten';
-    document.getElementById('ak-hint').innerHTML = 'Key aanvragen via <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>Je key wordt nooit gedeeld of verstuurd naar derden.';
-  }
-}
-
-document.getElementById('apikeyInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitApiKey();
-});
-
-// ─── Init ────────────────────────────────────────────────────────────────────
-renderTopics();
-document.getElementById('searchInput').placeholder = t('searchPlaceholder');
-
-// Show API key screen if no key stored yet
-if (!getApiKey()) showApiKeyScreen();
-
-// ─── PWA: inline manifest + service worker ───────────────────────────────────
-(function() {
-  // Inline manifest as blob URL (no separate file needed)
-  const manifest = {
-    name: "Security Navigator",
-    short_name: "SecNav",
-    description: "Best practice navigator voor energiesector NL",
-    start_url: "./",
-    display: "standalone",
-    background_color: "#0f1117",
-    theme_color: "#0f1117",
-    orientation: "portrait",
-    icons: [
-      { src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQwIiBmaWxsPSIjMGYxMTE3Ii8+PHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgcng9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0ZjhlZjciIHN0cm9rZS13aWR0aD0iOCIvPjxwYXRoIGQ9Ik02NCA4MGgzMm0tMzIgMTZoNjRtLTY0IDE2aDQ4IiBzdHJva2U9IiM0ZjhlZjciIHN0cm9rZS13aWR0aD0iOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+", sizes: "192x192", type: "image/svg+xml" },
-      { src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzBmMTExNyIvPjxyZWN0IHg9IjY0IiB5PSI2NCIgd2lkdGg9IjM4NCIgaGVpZ2h0PSIzODQiIHJ4PSI2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGY4ZWY3IiBzdHJva2Utd2lkdGg9IjIwIi8+PHBhdGggZD0iTTE3MCAyMTJoNzJtLTE3MiA0MGgxNzJtLTE3MiA0MGgxMjgiIHN0cm9rZT0iIzRmOGVmNyIgc3Ryb2tlLXdpZHRoPSIyMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+", sizes: "512x512", type: "image/svg+xml" }
-    ]
-  };
-
-  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-  const manifestURL = URL.createObjectURL(blob);
-  document.querySelector('link[rel="manifest"]').href = manifestURL;
-
-  // Inline service worker for offline caching
-  const swCode = `
-const CACHE = 'secnav-v1';
-const ASSETS = [self.location.pathname];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  self.skipWaiting();
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
-  self.clients.claim();
-});
-self.addEventListener('fetch', e => {
-  if (e.request.url.includes('api.anthropic.com') || e.request.url.includes('fonts.googleapis.com')) return;
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-    const clone = res.clone();
-    caches.open(CACHE).then(c => c.put(e.request, clone));
-    return res;
-  })));
-});`;
-
-  if ('serviceWorker' in navigator) {
-    const swBlob = new Blob([swCode], {type: 'application/javascript'});
-    const swURL = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swURL, {scope: './'}).catch(() => {});
-  }
-})();
-</script>
+<script src="kb.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
